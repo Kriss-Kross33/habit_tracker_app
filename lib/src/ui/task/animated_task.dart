@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:habit_tracker_app/src/ui/task/task.dart';
+import 'package:habit_tracker_app/src/core/core.dart';
+import 'package:habit_tracker_app/src/ui/ui.dart';
 
 class AnimatedTask extends StatefulWidget {
-  const AnimatedTask({super.key});
+  final String iconName;
+  const AnimatedTask({
+    super.key,
+    required this.iconName,
+  });
 
   @override
   State<AnimatedTask> createState() => _AnimatedTaskState();
@@ -12,6 +17,7 @@ class _AnimatedTaskState extends State<AnimatedTask>
     with SingleTickerProviderStateMixin<AnimatedTask> {
   late final AnimationController _animationController;
   late final Animation<double> _cureAnimation;
+  bool _showCheckIcon = false;
 
   @override
   void initState() {
@@ -20,6 +26,7 @@ class _AnimatedTaskState extends State<AnimatedTask>
       vsync: this,
       duration: Duration(milliseconds: 750),
     );
+    _animationController.addStatusListener(_checkStatusUpdates);
     _cureAnimation = _animationController.drive(
       CurveTween(curve: Curves.easeInOut),
     );
@@ -27,8 +34,18 @@ class _AnimatedTaskState extends State<AnimatedTask>
 
   @override
   void dispose() {
+    _animationController.removeStatusListener(_checkStatusUpdates);
     _animationController.dispose();
     super.dispose();
+  }
+
+  void _checkStatusUpdates(AnimationStatus status) {
+    if (status == AnimationStatus.completed) {
+      setState(() => _showCheckIcon = true);
+      Future.delayed(Duration(seconds: 1), () {
+        setState((() => _showCheckIcon = false));
+      });
+    }
   }
 
   @override
@@ -40,8 +57,25 @@ class _AnimatedTaskState extends State<AnimatedTask>
       child: AnimatedBuilder(
           animation: _cureAnimation,
           builder: (context, child) {
-            return TaskCompletionRing(
-              progress: _cureAnimation.value,
+            final themeData = AppTheme.of(context);
+            final progress = _animationController.value;
+            final hasCompleted = progress == 1.0;
+            return Stack(
+              children: [
+                TaskCompletionRing(
+                  progress: progress,
+                ),
+                Positioned.fill(
+                  child: CenteredSvgIcon(
+                    iconName: hasCompleted && _showCheckIcon
+                        ? AppAssets.check
+                        : widget.iconName,
+                    color: progress != 1.0
+                        ? themeData.taskIcon
+                        : themeData.accentNegative,
+                  ),
+                ),
+              ],
             );
           }),
     );

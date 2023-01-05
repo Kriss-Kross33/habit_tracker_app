@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:habit_tracker_app/src/ui/ui.dart';
 
-import '../../core/themes/themes.dart';
+import '../../core/core.dart';
+import '../ui.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -13,7 +13,9 @@ class HomeScreen extends StatelessWidget {
       body: Center(
         child: SizedBox(
           width: 240,
-          child: AnimatedTask(),
+          child: AnimatedTask(
+            iconName: AppAssets.carrot,
+          ),
         ),
       ),
     );
